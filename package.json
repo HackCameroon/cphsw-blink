@@ -3,13 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^4.1.1",
+    "@material-ui/icons": "^4.2.0",
+    "clsx": "^1.0.4",
+    "material-table": "^1.39.1",
+    "plotly.js": "^1.48.3",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "react-plotly.js": "^2.3.0",
     "react-scripts": "3.0.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "set PORT=3003 && react-scripts --max_old_space_size=4096 start",
+    "build": "react-scripts --max_old_space_size=4096 build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
