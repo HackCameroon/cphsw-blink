@@ -1,0 +1,966 @@
+---
+swagger: "2.0"
+info:
+  version: 1.4.2
+  title: Invoice
+  x-ibm-name: invoice
+  description: MobilePay Invoice allow you to send Invoices directly to your customers
+    using our APIs. The MobilePay Invoice API use OAuth 2.0 protocol for authentication
+    and authorization and contains endpoints needed to implement MobilePay Invoice
+    in your system. This API is for the technical integrator acting on behalf of merchant,
+    or merchant creating their own integrations.
+basePath: /invoice-restapi
+schemes:
+- https
+paths:
+  /api/v1/merchants/me:
+    get:
+      summary: Get merchant id
+      consumes: []
+      produces:
+      - application/json
+      parameters:
+      - name: Authorization
+        type: string
+        required: true
+        in: header
+        description: Bearer token
+        pattern: (Bearer )[A-Za-z0-9\-\._~\+\/]+=*
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/MerchantInfo'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BasicError'
+        404:
+          description: NotFound
+      description: |-
+        ## How to use this call?
+        **MerchantId** is a unique identifier of a merchant in our system. After you retrieve an access token from OpenID flow, then use the following endpoint to retrieve your **MerchantId**.
+
+        Read more on GitHub [here](https://mobilepaydev.github.io/MobilePay-Invoice/invoice_issuers)
+  /api/v1/merchants/{merchantid}/invoiceissuers:
+    get:
+      summary: Get all your invoice issuers.
+      produces:
+      - application/json
+      parameters:
+      - name: merchantid
+        in: path
+        required: true
+        type: string
+        format: uuid
+      - name: Authorization
+        type: string
+        required: true
+        in: header
+        description: Bearer token
+        pattern: (Bearer )[A-Za-z0-9\-\._~\+\/]+=*
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/InvoiceIssuersList'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/BasicError'
+  /api/v1/merchants/{merchantId}/auth/basic:
+    put:
+      summary: Change REST callback authentication scheme to basic.
+      description: "All the REST callbacks will be sent to `CallbackUrl` and contain
+        basic credentials in `Authorization` HTTP header:\r\n`Authorization: Basic
+        [Base64 encoded username:password]`\r\n<para />\r\nMore information about
+        callbacks can be found [here](https://mobilepaydev.github.io/MobilePay-Invoice/callbacks)."
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: merchantId
+        in: path
+        required: true
+        type: string
+        format: uuid
+      - name: input
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/BasicAuthenticationConfiguration'
+      - name: Authorization
+        type: string
+        required: true
+        in: header
+        description: Bearer token
+        pattern: (Bearer )[A-Za-z0-9\-\._~\+\/]+=*
+      responses:
+        204:
+          description: REST Callback authentication was set to Basic scheme.
+  /api/v1/merchants/{merchantId}/auth/apikey:
+    put:
+      summary: Change REST callback authentication scheme to API Key.
+      description: "All the REST callbacks will be sent to `CallbackUrl` and provided
+        API key will be added to `Authorization` HTTP\r\nheader.\r\n<para />\r\nMore
+        information about callbacks can be found [here](https://mobilepaydev.github.io/MobilePay-Invoice/callbacks)."
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: merchantId
+        in: path
+        required: true
+        type: string
+        format: uuid
+      - name: input
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/ApiKeyConfiguration'
+      - name: Authorization
+        type: string
+        required: true
+        in: header
+        description: Bearer token
+        pattern: (Bearer )[A-Za-z0-9\-\._~\+\/]+=*
+      responses:
+        204:
+          description: REST Callback authentication was set to API Key scheme.
+  /api/v1/merchants/{merchantid}/invoices:
+    post:
+      summary: Create an [InvoiceDirect](https://mobilepaydev.github.io/MobilePay-Invoice/api_reference#direct).
+      description: |-
+        ## How to use this call?
+
+        Use this call so that the customer sees a MobilePay notification. The customer sees the Invoice in Activities in the app. The customer clicks the Invoice and sees the content of the invoice, and clicks to continue to pay, and then chooses the preferred pay date and swipe.
+
+        Not all parameters are required. Find the full parameter for InvoiceDirect description on GitHub [here](https://mobilepaydev.github.io/MobilePay-Invoice/api_reference#direct)
+
+        `ConsumerAlias.AliasType` should be set to "Phone".
+
+        `CountryCode` allowed values:
+
+        * DK
+
+        * FI
+
+
+        `CurrencyCode` allowed values:
+
+        * DKK
+
+        * EUR
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: merchantid
+        in: path
+        required: true
+        type: string
+        format: uuid
+      - name: input
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/InvoiceInputModel'
+      - name: Authorization
+        type: string
+        required: true
+        in: header
+        description: Bearer token
+        pattern: (Bearer )[A-Za-z0-9\-\._~\+\/]+=*
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/InvoiceResultModel'
+  /api/v1/merchants/{merchantId}/invoices/{invoiceId}:
+    get:
+      tags:
+      - Merchants
+      summary: Get all the details of an invoice.
+      operationId: Merchants_GetInvoice
+      consumes: []
+      produces:
+      - application/json
+      - text/json
+      - application/xml
+      - text/xml
+      parameters:
+      - name: merchantId
+        in: path
+        required: true
+        type: string
+        format: uuid
+      - name: invoiceId
+        in: path
+        required: true
+        type: string
+        format: uuid
+      - name: CorrelationId
+        in: header
+        description: CorrelationId used for logging
+        required: false
+        type: string
+      - name: AuthenticatedUser
+        in: header
+        description: Id for user performing action (Must be a valid GUID)
+        required: true
+        type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/InvoiceDetailsModel'
+        404:
+          description: NotFound
+  /api/v1/merchants/{merchantId}/invoices/batch:
+    post:
+      summary: Create multiple InvoiceDirect.
+      description: |-
+        `ConsumerAlias.AliasType` should be set to "Phone".
+
+        `CountryCode` allowed values:
+
+        * DK
+
+        * FI
+
+
+        `CurrencyCode` allowed values:
+
+        * DKK
+
+        * EUR
+
+        More information can be found for creating multiple InvoiceDirect [here](https://mobilepaydev.github.io/MobilePay-Invoice/api_reference#direct).
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: merchantId
+        in: path
+        required: true
+        type: string
+        format: uuid
+      - name: invoiceInputModels
+        in: body
+        required: true
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/InvoiceInputModel'
+      - name: Authorization
+        type: string
+        required: true
+        in: header
+        description: Bearer token
+        pattern: (Bearer )[A-Za-z0-9\-\._~\+\/]+=*
+      responses:
+        202:
+          description: Accepted
+          schema:
+            $ref: '#/definitions/InvoiceBatchResultModel'
+  /api/v1/merchants/{merchantId}/invoices/link:
+    post:
+      summary: Create an [InvoiceLink](https://mobilepaydev.github.io/MobilePay-Invoice/#invoice-link).
+      description: "## How to use this call?\n\nUse this call to create a Link to
+        Invoice, that is sent to the. To view the invoice, the customer clicks the
+        invoice link \"Pay with MobilePay\" button.\n\nNote: The request does not
+        require a ConsumerAlias because any MobilePay user can pay InvoiceLink securely
+        via MobilePay. The customer can share the MobilePay InvoiceLink. \n\nNot all
+        parameters are required. Find the full parameter for InvoiceLink description
+        on GitHub [here](https://mobilepaydev.github.io/MobilePay-Invoice/api_reference#link)
+        \n\n`ConsumerAlias.AliasType` should be set to \"Phone\".\n\n`CountryCode`
+        allowed values:\n\n* DK\n\n* FI\n\n\n`CurrencyCode` allowed values:\n\n* DKK\n\n*
+        EUR"
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: merchantId
+        in: path
+        required: true
+        type: string
+        format: uuid
+      - name: input
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/InvoiceLinkInputModel'
+      - name: Authorization
+        type: string
+        required: true
+        in: header
+        description: Bearer token
+        pattern: (Bearer )[A-Za-z0-9\-\._~\+\/]+=*
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/InvoiceLinkResultModel'
+  /api/v1/merchants/{merchantId}/invoices/link/batch:
+    post:
+      summary: Create multiple [InvoiceLink](https://mobilepaydev.github.io/MobilePay-Invoice/#invoice-link).
+      description: |-
+        `ConsumerAlias.AliasType` should be set to "Phone".
+
+        `CountryCode` allowed values:
+
+        * DK
+
+        * FI
+
+
+        `CurrencyCode` allowed values:
+
+        * DKK
+
+        * EUR
+
+        More information can be found [here](https://mobilepaydev.github.io/MobilePay-Invoice/#batch-requests).
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: merchantId
+        in: path
+        required: true
+        type: string
+        format: uuid
+      - name: invoiceInputModels
+        in: body
+        required: true
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/InvoiceLinkInputModel'
+      - name: Authorization
+        type: string
+        required: true
+        in: header
+        description: Bearer token
+        pattern: (Bearer )[A-Za-z0-9\-\._~\+\/]+=*
+      responses:
+        202:
+          description: Accepted
+          schema:
+            $ref: '#/definitions/InvoiceBatchResultModel'
+  /api/v1/merchants/{merchantid}/invoices/{invoiceid}/status:
+    get:
+      summary: Get the current status of an invoice.
+      description: |-
+        Possible statuses:
+
+        * created
+
+        * invalid
+
+        * accepted
+
+        * paid
+
+        * rejected
+
+        * expired
+
+        Explanations for these statuses can be found [here](https://mobilepaydev.github.io/MobilePay-Invoice/api_reference#get-status).
+      consumes: []
+      produces:
+      - application/json
+      parameters:
+      - name: merchantid
+        in: path
+        required: true
+        type: string
+        format: uuid
+      - name: invoiceid
+        in: path
+        required: true
+        type: string
+        format: uuid
+      - name: Authorization
+        type: string
+        required: true
+        in: header
+        description: Bearer token
+        pattern: (Bearer )[A-Za-z0-9\-\._~\+\/]+=*
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/InvoiceStatusResultModel'
+        404:
+          description: NotFound
+  /api/v1/merchants/{merchantId}/invoices/{invoiceId}/cancel:
+    put:
+      summary: Cancel an unpaid invoice.
+      consumes: []
+      produces:
+      - application/json
+      parameters:
+      - name: merchantId
+        in: path
+        required: true
+        type: string
+        format: uuid
+      - name: invoiceId
+        in: path
+        required: true
+        type: string
+        format: uuid
+      - name: Authorization
+        type: string
+        required: true
+        in: header
+        description: Bearer token
+        pattern: (Bearer )[A-Za-z0-9\\-\\._~\\+\\/]+=*
+      responses:
+        204:
+          description: Invoice was successfully canceled.
+definitions:
+  InvoiceDetailsModel:
+    type: object
+    properties:
+      InvoiceId:
+        format: uuid
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+      InvoiceNumber:
+        type: string
+      IssueDate:
+        format: date-time
+        type: string
+      DueDate:
+        format: date-time
+        type: string
+      Comment:
+        type: string
+      InvoiceArticles:
+        type: array
+        items:
+          $ref: '#/definitions/InvoiceArticleDetailModel'
+      CurrencyCode:
+        type: string
+      TotalAmount:
+        format: double
+        type: number
+      InvoiceVatTotals:
+        type: array
+        items:
+          $ref: '#/definitions/InvoiceVatRateTotalModel'
+      TotalVatAmount:
+        format: double
+        type: number
+      TotalAmountExcludingVat:
+        format: double
+        type: number
+      MerchantId:
+        format: uuid
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+      InvoiceIssuerId:
+        format: uuid
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+      InvoiceIssuerName:
+        type: string
+      InvoiceIssuerAddress:
+        type: string
+      InvoiceIssuerZipcode:
+        type: string
+      InvoiceIssuerCity:
+        type: string
+      MerchantIsoCountryCode:
+        type: string
+      LogoUrl:
+        type: string
+      Status:
+        type: string
+      InvoiceUrl:
+        type: string
+        example: http://www.merchant.dk/invoice/
+  InvoiceArticleDetailModel:
+    type: object
+    properties:
+      ArticleNumber:
+        type: string
+      ArticleDescription:
+        type: string
+      TotalPriceIncludingVat:
+        format: double
+        type: number
+      Quantity:
+        format: double
+        type: number
+      PricePerUnit:
+        format: double
+        type: number
+  InvoiceVatRateTotalModel:
+    type: object
+    properties:
+      VatRate:
+        format: double
+        type: number
+      TotalVatAmount:
+        format: double
+        type: number
+  InvoiceResultModel:
+    type: object
+    properties:
+      InvoiceId:
+        format: uuid
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+    example:
+      InvoiceId: 89a140f4-8433-4196-b25f-690871be5b3d
+  InvoiceInputModel:
+    required:
+    - InvoiceIssuer
+    - ConsumerAlias
+    - ConsumerName
+    - TotalAmount
+    - TotalVATAmount
+    - CountryCode
+    - CurrencyCode
+    - InvoiceNumber
+    - IssueDate
+    - DueDate
+    - OrderDate
+    type: object
+    properties:
+      InvoiceIssuer:
+        format: uuid
+        type: string
+        example: efd08c19-24cf-4833-a4a4-bfa7bd58fbb2
+      ConsumerAlias:
+        $ref: '#/definitions/ConsumerAliasModel'
+      ConsumerName:
+        type: string
+        example: Test name
+      TotalAmount:
+        format: double
+        type: number
+        example: 360
+      TotalVATAmount:
+        format: double
+        type: number
+        example: 72
+      CountryCode:
+        type: string
+        example: DK
+      CurrencyCode:
+        type: string
+        example: DKK
+      ConsumerAddressLines:
+        type: array
+        items:
+          type: string
+          example:
+          - Paradisæblevej 13
+          - CC-1234 Andeby
+          - Wonderland
+      DeliveryAddressLines:
+        type: array
+        items:
+          type: string
+          example:
+          - Østerbrogade 120
+          - CC-1234 Andeby
+          - Wonderland
+      InvoiceNumber:
+        type: string
+        example: "58652"
+      IssueDate:
+        format: date-time
+        type: string
+        example: "2018-05-03"
+      DueDate:
+        format: date-time
+        type: string
+        example: "2018-05-11"
+      OrderDate:
+        format: date-time
+        type: string
+        example: "2018-05-03"
+      DeliveryDate:
+        format: date-time
+        type: string
+        example: "2018-05-06"
+      Comment:
+        type: string
+        example: Lorem ipsum dolor sit amet, eros faucibus aliqua erat aliquam odio
+          vitae.
+      MerchantContactName:
+        type: string
+        example: Some Company
+      MerchantOrderNumber:
+        type: string
+        example: "859"
+      BuyerOrderNumber:
+        type: string
+        example: "456"
+      PaymentReference:
+        type: string
+        example: "186"
+      InvoiceArticles:
+        type: array
+        items:
+          $ref: '#/definitions/InvoiceArticleModel'
+      InvoiceUrl:
+        type: string
+        example: http://www.merchant.dk/invoice/
+  ConsumerAliasModel:
+    required:
+    - Alias
+    - AliasType
+    type: object
+    properties:
+      Alias:
+        type: string
+        example: "+4544667788"
+      AliasType:
+        type: string
+        example: Phone
+  InvoiceArticleModel:
+    type: object
+    properties:
+      ArticleNumber:
+        type: string
+        example: "456"
+      ArticleDescription:
+        type: string
+        example: Lorem ipsum dolor sit amet
+      VATRate:
+        format: double
+        type: number
+        example: 25
+      TotalVATAmount:
+        format: double
+        type: number
+        example: 72
+      TotalPriceIncludingVat:
+        format: double
+        type: number
+        example: 360
+      Unit:
+        type: string
+        example: single
+      Quantity:
+        format: double
+        type: number
+        example: 6
+      PricePerUnit:
+        format: double
+        type: number
+        example: 60
+      PriceReduction:
+        format: double
+        type: number
+        example: 1.200000
+      PriceDiscount:
+        format: double
+        type: number
+        example: 2
+      Bonus:
+        format: double
+        type: number
+        example: 5
+  InvoiceStatusResultModel:
+    type: object
+    properties:
+      InvoiceId:
+        format: uuid
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+      Status:
+        type: string
+    example:
+      InvoiceId: 32b73932-836a-4491-bd3c-7969be3dc921
+      Status: accepted
+  InvoiceIssuersList:
+    type: object
+    properties:
+      InvoiceIssuers:
+        type: array
+        items:
+          $ref: '#/definitions/InvoiceIssuer'
+    example:
+      InvoiceIssuers:
+      - Id: 12b9e080-1bb7-43fb-bc98-b49d12e6d806
+        Name: YourInvoiceIssuer
+        AccountType: Account
+        Status: enabled
+        Address: Paradisæblevej 13
+        City: Andeby
+        ZipCode: 1234
+  InvoiceIssuer:
+    type: object
+    properties:
+      Id:
+        format: uuid
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+      Name:
+        type: string
+      AccountType:
+        type: string
+      Status:
+        type: string
+      Address:
+        type: string
+      City:
+        type: string
+      ZipCode:
+        type: string
+  MerchantInfo:
+    type: object
+    properties:
+      MerchantId:
+        format: uuid
+        type: string
+    example:
+      MerchantId: 12b9e080-1bb7-43fb-bc98-b49d12e6d806
+  InvoiceBatchResultModel:
+    type: object
+    properties:
+      Accepted:
+        type: array
+        items:
+          $ref: '#/definitions/InvoiceBatchResultModelItem'
+      Rejected:
+        type: array
+        items:
+          $ref: '#/definitions/InvoiceBatchResultModelRejectemItem'
+    example:
+      Accepted:
+      - InvoiceNumber: "58652"
+        InvoiceId: 72c28be5-dfbe-48b2-bce5-ac7769c157d9
+      Rejected:
+      - InvoiceNumber: "58694"
+        ErrorText: Invoice already exists
+        ErrorCode: 10104
+  InvoiceBatchResultModelRejectemItem:
+    type: object
+    properties:
+      InvoiceNumber:
+        type: string
+      ErrorText:
+        type: string
+      ErrorCode:
+        format: int32
+        type: integer
+  InvoiceBatchResultModelItem:
+    type: object
+    properties:
+      InvoiceNumber:
+        type: string
+      InvoiceId:
+        format: uuid
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+  InvoiceLinkInputModel:
+    required:
+    - InvoiceIssuer
+    - ConsumerName
+    - TotalAmount
+    - TotalVATAmount
+    - CountryCode
+    - CurrencyCode
+    - InvoiceNumber
+    - IssueDate
+    - DueDate
+    - OrderDate
+    type: object
+    properties:
+      InvoiceIssuer:
+        format: uuid
+        type: string
+        example: efd08c19-24cf-4833-a4a4-bfa7bd58fbb2
+      ConsumerAlias:
+        $ref: '#/definitions/ConsumerAliasModel'
+      ConsumerName:
+        type: string
+        example: Test name
+      TotalAmount:
+        format: double
+        type: number
+        example: 360
+      TotalVATAmount:
+        format: double
+        type: number
+        example: 72
+      CountryCode:
+        type: string
+        example: DK
+      CurrencyCode:
+        type: string
+        example: DKK
+      ConsumerAddressLines:
+        type: array
+        items:
+          type: string
+          example:
+          - Paradisæblevej 13
+          - CC-1234 Andeby
+          - Wonderland
+      DeliveryAddressLines:
+        type: array
+        items:
+          type: string
+          example:
+          - Østerbrogade 120
+          - CC-1234 Andeby
+          - Wonderland
+      InvoiceNumber:
+        type: string
+        example: "58652"
+      IssueDate:
+        format: date-time
+        type: string
+        example: "2018-05-03"
+      DueDate:
+        format: date-time
+        type: string
+        example: "2018-05-11"
+      OrderDate:
+        format: date-time
+        type: string
+        example: "2018-05-03"
+      DeliveryDate:
+        format: date-time
+        type: string
+        example: "2018-05-06"
+      Comment:
+        type: string
+        example: Lorem ipsum dolor sit amet, eros faucibus aliqua erat aliquam odio
+          vitae.
+      MerchantContactName:
+        type: string
+        example: Some Company
+      MerchantOrderNumber:
+        type: string
+        example: "859"
+      BuyerOrderNumber:
+        type: string
+        example: "456"
+      PaymentReference:
+        type: string
+        example: "186"
+      InvoiceArticles:
+        type: array
+        items:
+          $ref: '#/definitions/InvoiceArticleModel'
+      InvoiceUrl:
+        type: string
+        example: http://www.merchant.dk/invoice/
+  InvoiceLinkResultModel:
+    type: object
+    properties:
+      InvoiceId:
+        format: uuid
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+      Links:
+        type: array
+        items:
+          $ref: '#/definitions/ResourceLink'
+    example:
+      InvoiceId: 89a140f4-8433-4196-b25f-690871be5b3d
+      Links:
+      - Rel: user-redirect
+        Href: https://sandprod-open.mobilepay.dk/usersettings-landing-website/?token=eb406472-fdfa-4612-9df2-ec4dd83b7812&countryCode=DK&product=Invoice
+  BasicAuthenticationConfiguration:
+    required:
+    - Username
+    - Password
+    - CallbackUrl
+    type: object
+    properties:
+      Username:
+        type: string
+      Password:
+        type: string
+      CallbackUrl:
+        type: string
+    example:
+      Username: invoiceclient
+      Password: DGjPdm5n
+      CallbackUrl: http://developer.mobilepay.dk
+  ApiKeyConfiguration:
+    required:
+    - ApiKey
+    - CallbackUrl
+    type: object
+    properties:
+      ApiKey:
+        type: string
+      CallbackUrl:
+        type: string
+    example:
+      ApiKey: M8z4KWNc2v4rKMKT
+      CallbackUrl: http://developer.mobilepay.dk
+  ResourceLink:
+    type: object
+    properties:
+      Rel:
+        type: string
+      Href:
+        type: string
+  BasicError:
+    properties:
+      httpCode:
+        type: string
+        description: HTTP status code.
+      httpMessage:
+        type: string
+        description: HTTP status code description.
+      moreInformation:
+        type: string
+        description: More detailed explanation.
+    example:
+      application/json:
+        httpCode: 401
+        httpMessage: Unauthorized
+        moreInformation: Token not valid
+    description: Errors related to basic request validation like authorization headers,
+      ClientId, ClientSecret validations. Not a business logic.
+x-ibm-configuration:
+  enforced: true
+  testable: true
+  phase: realized
+consumes:
+- application/json
+produces:
+- application/json
+securityDefinitions:
+  ClientSecret:
+    type: apiKey
+    description: ""
+    in: header
+    name: X-IBM-Client-Secret
+  ClientId:
+    type: apiKey
+    description: ""
+    in: header
+    name: X-IBM-Client-Id
+security:
+- ClientId: []
+  ClientSecret: []
+externalDocs:
+  description: Find out more.
+  url: https://mobilepaydev.github.io/MobilePay-Invoice/
+x-ibm-endpoints:
+- endpointUrl: https://api.mobilepay.dk
+  type:
+  - production
+  - development
+...
